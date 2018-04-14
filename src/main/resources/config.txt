@@ -1,0 +1,27 @@
+# Number of nodes in the system
+10
+
+# Node#    Hostname          Port#
+   67     dc11.utdallas.edu   1255
+   73    dc12.utdallas.edu   1256
+   32     dc13.utdallas.edu   1257
+   191   dc14.utdallas.edu   1258
+   22    dc15.utdallas.edu   1259
+   451     dc16.utdallas.edu   1260
+   1131    dc17.utdallas.edu   1261
+   5     dc18.utdallas.edu   1262
+   12790   dc19.utdallas.edu   1263
+   587    dc20.utdallas.edu   1264
+ 
+ 
+# Node#   Neighbors
+   67      32 191
+   73      32 191 451 1131
+   32      67 73 451
+   191     67 73 1131
+   22      451 1131
+   451     22 32 73 587
+   1131    5 22 73 191
+   5       1131 12790
+   12790   5
+   587    451
