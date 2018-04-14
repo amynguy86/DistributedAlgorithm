@@ -89,7 +89,14 @@ public class Config {
 
 	// MST Data
 
+	//Includes Max time to broadcast Search,covergecast and test messages=(4n)
 	int numRoundMWOE;
+	
+	//Included time for leader to send merge request to node and the actual merge (n+1)
+	int numRoundMerge;
+	
+	//Include time a new leader takes to broadcast itself as the leader(n)
+	int numRoundLeaderBroadcast;
 
 	public int getNumRoundMWOE() {
 		return numRoundMWOE;
@@ -118,9 +125,6 @@ public class Config {
 	public int getPhaseSize() {
 		return this.getNumRoundLeaderBroadcast() + this.getNumRoundMerge() + this.getNumRoundMWOE();
 	}
-
-	int numRoundMerge;
-	int numRoundLeaderBroadcast;
 
 	public Config() {
 		nodesMap = new HashMap<>();
@@ -228,7 +232,7 @@ public class Config {
 			}
 		}
 
-		this.numRoundMWOE = numNodes * 2;
+		this.numRoundMWOE = numNodes * 4;
 		this.numRoundMerge = numNodes + 1;
 		this.numRoundLeaderBroadcast = numNodes;
 
