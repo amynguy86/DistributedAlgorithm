@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -25,21 +26,26 @@ public class Config {
 	static Logger logger = LoggerFactory.getLogger(Config.class);
 	@Value("${server.port:2281}")
 	private String port;
-	@Value("${config.file:C://Users//amin//Desktop//Distributed//project1//src//main//resources//config.txt}")
+	@Value("${config.file:C://Users//amin//Desktop//Distributed//DistributedAlgorithm//src//main//resources//config.txt}")
 	private String configFile;
-	@Value("${node.id:200}")
+	@Value("${node.id:184}")
 	private int myId;
 	@Value("${max.cached:10}")
 	private int maxCached;
-	
-	private Map<Integer,Integer> neiboursCostmap;
-	
+
+	private Map<Integer, Integer> neiboursCostmap;
+
 	public int getMaxCached() {
 		return maxCached;
 	}
 
 	@Value("${wait.time.seconds}")
 	int startupTime;
+
+	// Either new(mst, by default) or old
+	@Value("${file.format:new}")
+	String fileFormat;
+
 	public int getMyId() {
 		return myId;
 	}
@@ -47,7 +53,7 @@ public class Config {
 	public int getStartupTime() {
 		return this.startupTime;
 	}
-	
+
 	public void setMyId(int myId) {
 		this.myId = myId;
 	}
@@ -77,13 +83,14 @@ public class Config {
 	}
 
 	private int numNodes;
-	
+
 	private Map<Integer, String> nodesMap;
 	private Set<Integer> neibours;
-	
-	//MST Data
-	
+
+	// MST Data
+
 	int numRoundMWOE;
+
 	public int getNumRoundMWOE() {
 		return numRoundMWOE;
 	}
@@ -107,9 +114,9 @@ public class Config {
 	public void setNumRoundLeaderBroadcast(int numRoundLeaderBroadcast) {
 		this.numRoundLeaderBroadcast = numRoundLeaderBroadcast;
 	}
-	
+
 	public int getPhaseSize() {
-		return this.getNumRoundLeaderBroadcast()+this.getNumRoundMerge()+this.getNumRoundMWOE();
+		return this.getNumRoundLeaderBroadcast() + this.getNumRoundMerge() + this.getNumRoundMWOE();
 	}
 
 	int numRoundMerge;
@@ -119,8 +126,8 @@ public class Config {
 		nodesMap = new HashMap<>();
 		neibours = new HashSet<>();
 		neiboursCostmap = new HashMap<>();
-		numNodes=0;
-	}	
+		numNodes = 0;
+	}
 
 	public Map<Integer, Integer> getNeiboursCostmap() {
 		return neiboursCostmap;
@@ -132,10 +139,11 @@ public class Config {
 
 	@PostConstruct
 	public void init() throws IOException, URISyntaxException {
-		
+
 		BufferedReader br = null;
 		FileReader fr = null;
 		
+		logger.info("Started Readign File");
 		Map<Integer, String> neibourMap;
 		try {
 
@@ -144,46 +152,59 @@ public class Config {
 			br = new BufferedReader(fr);
 
 			String line;
-			int totalNodes=-1;
-			
-			while ((line = br.readLine()) != null) {
-				String trimmedLine= line.trim();
-				if(trimmedLine.length()==0 || trimmedLine.startsWith("#"))
+			int totalNodes = -1;
+
+			while ((line = br.readLine()) != null ) {
+				String trimmedLine = line.trim();
+				if (trimmedLine.length() == 0 || trimmedLine.startsWith("#"))
 					continue;
-				
-				if(totalNodes<0) {
-					totalNodes=Integer.parseInt(trimmedLine);
-					numNodes=totalNodes;
+
+				// Reading No. of Nodes
+				if (totalNodes < 0) {
+					totalNodes = Integer.parseInt(trimmedLine);
+					numNodes = totalNodes;
 					continue;
 				}
-				
-				if(totalNodes!=0) {
+
+				// Reading Hostname and Port of Nodes
+				if (totalNodes != 0) {
 					totalNodes--;
-					String[] nodes =trimmedLine.split(" +");
-					if(nodes.length!=3) throw new IOException("Invalid File");
-					if(!(Integer.parseInt(nodes[0])==myId)) {
-						nodesMap.put(Integer.parseInt(nodes[0]),nodes[1].concat(":").concat(nodes[2]));
+					String[] nodes = trimmedLine.split(" +");
+					if (nodes.length != 3)
+						throw new IOException("Invalid File");
+					if (!(Integer.parseInt(nodes[0]) == myId)) {
+						nodesMap.put(Integer.parseInt(nodes[0]), nodes[1].concat(":").concat(nodes[2]));
 					}
 					continue;
 				}
-				
-				
-				if(Integer.parseInt(trimmedLine.substring(0, trimmedLine.indexOf(' ')))==myId) {
-					logger.info("Found MyId");
-					String[] neibours =trimmedLine.split(" +");
-					for(String neibour:neibours) {
-						if(Integer.parseInt(neibour)==myId) {
-							continue;
+
+				// Reading the Neibours and/or Edges
+				if (this.fileFormat.equalsIgnoreCase("old")) {
+					if (Integer.parseInt(trimmedLine.substring(0, trimmedLine.indexOf(' '))) == myId) {
+						logger.info("Found MyId");
+						String[] neibours = trimmedLine.split(" +");
+						for (String neibour : neibours) {
+							if (Integer.parseInt(neibour) == myId) {
+								continue;
+							} else {
+								this.neibours.add(Integer.parseInt(neibour));
+							}
 						}
-						else {
-							this.neibours.add(Integer.parseInt(neibour));
-						}
+					} else
+						continue;
+				} else if (fileFormat.equalsIgnoreCase("new")) {
+					String[] lineData = trimmedLine.split(" +");
+					String edgeInfo = lineData[0];
+					String cost = lineData[1];
+					String[] nodes = edgeInfo.replace("(", "").replace(")","").split(",");
+					logger.info(nodes[0].trim() + "-->" + nodes[1].trim() + "=" + cost);
+					if (myId == Integer.parseInt(nodes[0].trim()) || myId == Integer.parseInt(nodes[1].trim()) ) {
+						int idToPut=myId == Integer.parseInt(nodes[0].trim())?Integer.parseInt(nodes[1].trim()):Integer.parseInt(nodes[0].trim());
+						this.neiboursCostmap.put(idToPut, Integer.parseInt(cost));
 					}
 				}
-				else
-					continue;	
 			}
-			
+
 			debug();
 
 		} catch (IOException e) {
@@ -206,19 +227,28 @@ public class Config {
 
 			}
 		}
-		
-		this.numRoundMWOE=numNodes*2;
-		this.numRoundMerge=numNodes+1;
-		this.numRoundLeaderBroadcast=numNodes;
+
+		this.numRoundMWOE = numNodes * 2;
+		this.numRoundMerge = numNodes + 1;
+		this.numRoundLeaderBroadcast = numNodes;
 
 	}
-	
+
 	private void debug() {
-		logger.info("MyId "+ this.myId);
+		logger.info("MyId " + this.myId);
 		logger.info("My Neibours:");
 		
-		for(int neibour:neibours) {
-			logger.info(neibour+": "+nodesMap.get(neibour) );
+		if (this.fileFormat.equals("old")) {
+		
+			for (int neibour : neibours) {
+				logger.info(neibour + ": " + nodesMap.get(neibour));
+			}
+		}
+		
+		else if (this.fileFormat.equalsIgnoreCase("new")) {
+			for (Entry<Integer, Integer> edge : this.neiboursCostmap.entrySet()) {
+				logger.info(myId+"-->"+edge.getKey()+"="+edge.getValue());
+			}
 		}
 	}
 }

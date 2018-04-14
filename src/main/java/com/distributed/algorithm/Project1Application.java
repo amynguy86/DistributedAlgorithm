@@ -56,7 +56,7 @@ public class Project1Application {
 			 logger.debug("Debug is On");
 			 //context.getBean(Algorithm.class).init();
 			 //context.getBean(BFS.class).init();
-			 context.getBean(MST.class).init();
+			 //context.getBean(MST.class).init();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
