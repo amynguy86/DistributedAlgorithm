@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.PostConstruct;
 
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.distributed.algorithm.Project1Application;
+import com.distributed.algorithm.mst.Triple;
 
 import org.slf4j.Logger;
 
@@ -33,7 +35,9 @@ public class Config {
 	@Value("${max.cached:10}")
 	private int maxCached;
 
-	private Map<Integer, Integer> neiboursCostmap;
+	//Triple is a an object that defines lexigraphic order to same cost edges, <neibour,Triple>
+	private Map<Integer,Triple> neiboursCostmap;
+	private Set<Triple> setOfAllTriples;
 
 	public int getMaxCached() {
 		return maxCached;
@@ -131,13 +135,14 @@ public class Config {
 		neibours = new HashSet<>();
 		neiboursCostmap = new HashMap<>();
 		numNodes = 0;
+		setOfAllTriples = new TreeSet<>();
 	}
 
-	public Map<Integer, Integer> getNeiboursCostmap() {
+	public Map<Integer, Triple> getNeiboursCostmap() {
 		return neiboursCostmap;
 	}
 
-	public void setNeiboursCostmap(Map<Integer, Integer> neiboursCostmap) {
+	public void setNeiboursCostmap(Map<Integer, Triple> neiboursCostmap) {
 		this.neiboursCostmap = neiboursCostmap;
 	}
 
@@ -202,9 +207,12 @@ public class Config {
 					String cost = lineData[1];
 					String[] nodes = edgeInfo.replace("(", "").replace(")","").split(",");
 					logger.info(nodes[0].trim() + "-->" + nodes[1].trim() + "=" + cost);
+					this.setOfAllTriples.add(new Triple(nodes[0].trim(),nodes[1].trim(),cost));
 					if (myId == Integer.parseInt(nodes[0].trim()) || myId == Integer.parseInt(nodes[1].trim()) ) {
+						Triple triple=new Triple(nodes[0].trim(),nodes[1].trim(),cost);
 						int idToPut=myId == Integer.parseInt(nodes[0].trim())?Integer.parseInt(nodes[1].trim()):Integer.parseInt(nodes[0].trim());
-						this.neiboursCostmap.put(idToPut, Integer.parseInt(cost));
+						this.neiboursCostmap.put(idToPut, triple);
+						
 					}
 				}
 			}
@@ -250,7 +258,9 @@ public class Config {
 		}
 		
 		else if (this.fileFormat.equalsIgnoreCase("new")) {
-			for (Entry<Integer, Integer> edge : this.neiboursCostmap.entrySet()) {
+			logger.info("Set of all ordered triples");
+			logger.info(this.setOfAllTriples.toString());
+			for (Entry<Integer, Triple> edge : this.neiboursCostmap.entrySet()) {
 				logger.info(myId+"-->"+edge.getKey()+"="+edge.getValue());
 			}
 		}

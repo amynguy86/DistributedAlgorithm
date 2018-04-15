@@ -7,7 +7,7 @@ import java.util.Map;
  * SEARCH=no DATA
  * ConvergeCAST = edgeCost and Id of node with that edgeCost in data
  * Accept = no Data
- * Merge = includes nodeID that is suppose to initiateMerge
+ * Merge = includes MERGE_ID that is suppose to initiateMerge
  * Leader = data contains LeaderID
  * TEST = no Data
  * TESTREPLY = Data contains LEADERID

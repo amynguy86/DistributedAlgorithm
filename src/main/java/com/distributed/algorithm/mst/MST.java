@@ -41,9 +41,9 @@ public class MST implements Consumer<MessageFormat> {
 
 	// MFS Data
 
-	// <COST,ID>,sorted by cost, these nodes could or could not be in the same
+	// <Tripe,neibourID>,sorted by Triple, these nodes could or could not be in the same
 	// component, Test Messages are required
-	TreeMap<Integer, Integer> nonTreeNeibourMap;
+	TreeMap<Triple, Integer> nonTreeNeibourMap;
 
 	Set<Integer> treeNeibourSet; // <ID> //Neibours that are in the tree
 	Map<Integer, MessageFormat> msgToNeiboursMap; // <ID,MSG>, contains ALL neibours with their messages to be send at
@@ -70,16 +70,19 @@ public class MST implements Consumer<MessageFormat> {
 
 	public static class MWOE {
 		public int nodeID;
-		public int cost;
+		public Triple cost;
 
 		public void put(Map<String, String> map) {
-			map.put("nodeID", Integer.toString(nodeID));
-			map.put("cost", Integer.toString(cost));
+			map.put(MSTMsgType.MSTMsgTypeData.NODE_ID.toString(), Integer.toString(nodeID));
+			if(cost!=null)
+				map.put(MSTMsgType.MSTMsgTypeData.EDGE_COST.toString(), cost.toString());
+			else
+				map.put(MSTMsgType.MSTMsgTypeData.EDGE_COST.toString(), "NULL");
 		}
 
 		public void get(Map<String, String> map) {
-			nodeID = Integer.parseInt(map.get("nodeID")); // nodeID that won!
-			cost = Integer.parseInt(map.get("cost"));
+			nodeID = Integer.parseInt(map.get(MSTMsgType.MSTMsgTypeData.NODE_ID.toString())); // nodeID that won!
+			cost=Triple.deserialize(map.get(MSTMsgType.MSTMsgTypeData.EDGE_COST.toString()));
 		}
 	}
 
@@ -112,9 +115,9 @@ public class MST implements Consumer<MessageFormat> {
 		setState(MSTState.MWOE);
 		mwoe.nodeID = config.getMyId();
 
-		for (Entry<Integer, Integer> neibour : config.getNeiboursCostmap().entrySet()) {
+		for (Entry<Integer, Triple> neibour : config.getNeiboursCostmap().entrySet()) {
 			this.msgToNeiboursMap.put(neibour.getKey(), null);
-			this.nonTreeNeibourMap.put(neibour.getValue(), neibour.getKey()); // todo change cost
+			this.nonTreeNeibourMap.put(neibour.getValue(), neibour.getKey()); 
 		}
 
 		mwoe.cost = nonTreeNeibourMap.firstKey(); // todo edge case here where it does not have any neibour
@@ -125,7 +128,7 @@ public class MST implements Consumer<MessageFormat> {
 		// because nothing in tree at beginning)
 		TimeUnit.SECONDS.sleep(config.getStartupTime());
 
-		for (Entry<Integer, Integer> neibour : config.getNeiboursCostmap().entrySet()) {
+		for (Entry<Integer, Triple> neibour : config.getNeiboursCostmap().entrySet()) {
 			logger.debug("Sending Msg to " + neibour + " for Round: " + round + " Message:" + msg.toString());
 			this.toTcp.send(MessageFormat.buildMessage(msg), config.getNodesMap().get(neibour.getKey()));
 		}
@@ -176,10 +179,10 @@ public class MST implements Consumer<MessageFormat> {
 						"Leader node: " + config.getMyId() + " must initiate merge with node with cost: " + mwoe.cost);
 				MessageFormat msgToSend = new MessageFormat(config.getMyId(), AlgorithmType.MST,
 						MSTMsgType.ACCEPT.getMap());
-				msgToNeiboursMap.put(this.nonTreeNeibourMap.firstKey(), msgToSend);
-				treeNeibourSet.add(this.nonTreeNeibourMap.firstKey());
-				this.nodeThatwasSentAccept = nonTreeNeibourMap.firstKey();
-				this.nonTreeNeibourMap.remove(nodeThatwasSentAccept);
+				msgToNeiboursMap.put(this.nonTreeNeibourMap.firstEntry().getValue(), msgToSend);
+				treeNeibourSet.add(this.nonTreeNeibourMap.firstEntry().getValue());
+				this.nodeThatwasSentAccept = nonTreeNeibourMap.firstEntry().getValue();
+				this.nonTreeNeibourMap.remove(nonTreeNeibourMap.firstEntry().getKey());
 				acceptSent = true;
 
 			} else {
@@ -195,7 +198,7 @@ public class MST implements Consumer<MessageFormat> {
 			}
 			// Reset
 			mwoe.nodeID = -1;
-			mwoe.cost = -1;
+			mwoe.cost = null;
 		}
 
 	}
@@ -270,8 +273,7 @@ public class MST implements Consumer<MessageFormat> {
 	private void sendConvergeCast() {
 		if (this.parent != -1) {
 			Map<String, String> map = MSTMsgType.CONVERGECAST.getMap();
-			map.put(MSTMsgType.MSTMsgTypeData.EDGE_COST.toString(), Integer.toString(this.mwoe.cost));
-			map.put(MSTMsgType.MSTMsgTypeData.NODE_ID.toString(), Integer.toString(this.mwoe.nodeID));
+			this.mwoe.put(map);
 			MessageFormat ConvergeCastMsg = new MessageFormat(config.getMyId(), AlgorithmType.MST, map);
 			sendEndofRound(this.parent, ConvergeCastMsg);
 		} else {
@@ -285,7 +287,7 @@ public class MST implements Consumer<MessageFormat> {
 		// Send Test Messages to figure out MWOE
 		MessageFormat testMsg = new MessageFormat(config.getMyId(), AlgorithmType.MST, MSTMsgType.TEST.getMap());
 
-		for (Entry<Integer, Integer> entry : this.nonTreeNeibourMap.entrySet()) {
+		for (Entry<Triple, Integer> entry : this.nonTreeNeibourMap.entrySet()) {
 			sendEndofRound(entry.getValue(), testMsg);
 		}
 	}
@@ -360,7 +362,7 @@ public class MST implements Consumer<MessageFormat> {
 
 					if (this.nonTreeNeibourMap.size() == 0) {
 						logger.info("No more non-tree edges, sending convergecast back to parent: " + this.parent);
-						this.mwoe.cost = -1;
+						this.mwoe.cost = null;
 						this.mwoe.nodeID = -1;
 						sendConvergeCast();
 					}
@@ -382,11 +384,10 @@ public class MST implements Consumer<MessageFormat> {
 				this.numSearchMessagesSent--;
 
 				MWOE mwoeRecvd = new MWOE();
-				mwoeRecvd.nodeID = Integer
-						.parseInt(t.getAlgoData().get(MSTMsgType.MSTMsgTypeData.EDGE_COST.toString()));
-				mwoeRecvd.cost = Integer.parseInt(t.getAlgoData().get(MSTMsgType.MSTMsgTypeData.NODE_ID.toString()));
-
-				if (mwoeRecvd.cost < this.mwoe.cost) {
+				mwoeRecvd.get(t.getAlgoData());
+				
+				
+				if (mwoeRecvd.cost!=null && mwoeRecvd.cost.compareTo(this.mwoe.cost)<0) {
 					this.mwoe.cost = mwoeRecvd.cost;
 					this.mwoe.nodeID = mwoeRecvd.nodeID;
 				}
@@ -398,7 +399,7 @@ public class MST implements Consumer<MessageFormat> {
 						logger.info("No more non-tree edges, sending convergecast back to parent: " + this.parent);
 						sendConvergeCast();
 					} else {
-						if (this.nonTreeNeibourMap.firstKey() < mwoe.cost) {
+						if (mwoe.cost!=null && this.nonTreeNeibourMap.firstKey().compareTo(mwoe.cost)<0) {
 							logger.info("Starting to send test messages");
 							sendTestMessages();
 							this.numTestMessagesSent = this.nonTreeNeibourMap.size();
@@ -442,9 +443,9 @@ public class MST implements Consumer<MessageFormat> {
 					logger.info("Removing node " + t.getMyId() + " from nonTreeEdges");
 					this.nonTreeNeibourMap.remove(config.getNeiboursCostmap().get(t.getMyId()));
 				} else {
-					if (this.mwoe.cost > config.getNeiboursCostmap().get(t.getMyId())) {
+					if (this.mwoe.cost!=null && this.mwoe.cost.compareTo(config.getNeiboursCostmap().get(t.getMyId()))>0) {
 						this.mwoe.cost = config.getNeiboursCostmap().get(t.getMyId());
-						logger.debug("New MWOE being selected, nodeID:" + t.getMyId());
+						logger.debug("New MWOE being selected, nodeID:" + t.getMyId()+" Cost: "+mwoe.cost);
 						this.mwoe.nodeID = t.getMyId();
 					}
 				}
