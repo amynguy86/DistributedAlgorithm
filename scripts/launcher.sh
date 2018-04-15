@@ -8,7 +8,7 @@ PROJDIR=/people/cs/s/sxg122830/TestProj
 
 # Directory where the config file is located on your local system
 #CONFIGLOCAL=$HOME/launch/config.txt
-CONFIGLOCAL=C:/Users/amin/Desktop/Distributed/project1/src/main/resources/config.txt
+CONFIGLOCAL=C:/Users/amin/Desktop/Distributed/DistributedAlgorithm/src/main/resources/config.txt
 
 # Directory your java classes are in
 BINDIR=$PROJDIR/bin
@@ -33,7 +33,7 @@ cat $CONFIGLOCAL | sed -e "s/#.*//" | sed -e "/^\s*$/d" |
 		
 		echo $port
 		echo $p
-	start C:/Users/amin/Desktop/Distributed/project1/scripts/run.bat $port $p $host
+	start C:/Users/amin/Desktop/Distributed/DistributedAlgorithm/scripts/run.bat $port $p $host
 	
 	#start TITLE $p:$port && "ssh $netid@csgrads1.utdallas.edu ssh $netid@$host java -jar DistComp/project1-0.0.1-SNAPSHOT.jar --config.file=DistComp/config.txt --server.port=%1 --node.id=%2 --logging.config=DistComp/logback.xml" 
 	

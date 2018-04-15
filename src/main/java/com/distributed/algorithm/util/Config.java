@@ -101,6 +101,8 @@ public class Config {
 	
 	//Include time a new leader takes to broadcast itself as the leader(n)
 	int numRoundLeaderBroadcast;
+	
+	int totalPhase; //the last phase at which the algorithm will terminate
 
 	public int getNumRoundMWOE() {
 		return numRoundMWOE;
@@ -212,6 +214,7 @@ public class Config {
 						Triple triple=new Triple(nodes[0].trim(),nodes[1].trim(),cost);
 						int idToPut=myId == Integer.parseInt(nodes[0].trim())?Integer.parseInt(nodes[1].trim()):Integer.parseInt(nodes[0].trim());
 						this.neiboursCostmap.put(idToPut, triple);
+						this.neibours.add(idToPut);
 						
 					}
 				}
@@ -243,7 +246,16 @@ public class Config {
 		this.numRoundMWOE = numNodes * 4;
 		this.numRoundMerge = numNodes + 1;
 		this.numRoundLeaderBroadcast = numNodes;
+		this.totalPhase=(int)((Math.log(numNodes)/Math.log(2)));
 
+	}
+
+	public int getTotalPhase() {
+		return totalPhase;
+	}
+
+	public void setTotalPhase(int finalPhase) {
+		this.totalPhase = finalPhase;
 	}
 
 	private void debug() {

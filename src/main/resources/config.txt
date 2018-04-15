@@ -1,4 +1,3 @@
-
 #Sample Configuration File
 #
 # Configuration file for CS 6380 Project 2 (Spring 2018)
@@ -12,13 +11,13 @@
 #
 # Format is:
 # UID Hostname Port
-5 dc02.utdallas.edu 1234
-200 dc03.utdallas.edu 1233
-8 dc04.utdallas.edu 1233
-184 dc05.utdallas.edu 1232
-9 dc06.utdallas.edu 1233
-37 dc07.utdallas.edu 1235
-78 dc08.utdallas.edu 1236
+5     Amin-PC 1233
+200   Amin-PC 1234
+8     Amin-PC 1235
+184   Amin-PC 1236
+9     Amin-PC 1237
+37    Amin-PC 1238
+78    Amin-PC 1239
 
 
 # List of edges and their weight, one per line. An edge is denoted
