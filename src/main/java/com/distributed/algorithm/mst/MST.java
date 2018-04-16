@@ -462,8 +462,7 @@ public class MST implements Consumer<MessageFormat> {
 
 			case TEST:
 				if (this.state != MSTState.MWOE) {
-					logger.error("Test Message recieved but State is not: " + MSTState.MWOE.toString());
-					assert (false);
+					Assert.state (false,"Test Message recieved but State is not: " + MSTState.MWOE.toString());
 				}
 
 				if (this.msgToNeiboursMap.get(t.getMyId()) != null && this.msgToNeiboursMap.get(t.getMyId())
@@ -493,13 +492,12 @@ public class MST implements Consumer<MessageFormat> {
 				String msgType = t.getAlgoData().get(MSTMsgType.MSTMsgTypeData.MSG_TYPE.toString());
 
 				if (this.state != MSTState.MWOE) {
-					logger.error(msgType + " recieved but State is not: " + MSTState.MWOE.toString());
-					assert (false);
+					Assert.state (false,msgType + " recieved but State is not: " + MSTState.MWOE.toString());
+					
 				}
 
 				if (this.numTestMessagesSent == 0) {
-					logger.error(msgType + " Message recieved but no test messages were sent");
-					assert (false);
+					Assert.state (false,msgType + " Message recieved but no test messages were sent");
 				}
 
 				this.numTestMessagesSent--;
@@ -528,8 +526,8 @@ public class MST implements Consumer<MessageFormat> {
 				break;
 			case ACCEPT:
 				if (this.state != MSTState.Merge) {
-					logger.error("ACCEPT Message recieved but State is not: " + MSTState.MWOE.toString());
-					assert (false);
+					Assert.state(false,"ACCEPT Message recieved but State is not: " + MSTState.MWOE.toString());
+					 
 				}
 
 				this.nodesThatSentAccept.add(t.getMyId());
@@ -545,8 +543,8 @@ public class MST implements Consumer<MessageFormat> {
 
 			case MERGE:
 				if (this.state != MSTState.Merge) {
-					logger.error("MERGE Message recieved but State is not: " + MSTState.MWOE.toString());
-					assert (false);
+					Assert.state (false,"MERGE Message recieved but State is not: " + MSTState.MWOE.toString());
+					
 				}
 
 				int targetNodeId = -1; // node Id for which this merge is intented for
@@ -566,9 +564,8 @@ public class MST implements Consumer<MessageFormat> {
 
 			case LEADER:
 				if (this.state != MSTState.LeaderBroadcast) {
-					logger.error("LeaderBroadcast Message recieved but State is not: "
+					Assert.state(false,"LeaderBroadcast Message recieved but State is not: "
 							+ MSTState.LeaderBroadcast.toString());
-					assert (false);
 				}
 
 				this.leader = Integer.parseInt(t.getAlgoData().get(MSTMsgType.MSTMsgTypeData.LEADER.toString()));

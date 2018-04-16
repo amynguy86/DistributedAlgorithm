@@ -53,7 +53,7 @@ public class Synchronizer {
 		}
 		
 		public void addChannel(int index,QueueChannel msgChannel) {
-			assert(index<2);
+			Assert.state(index<2,"Cannot add more than 2 channels");
 			channel[index]=msgChannel;
 		}
 		
