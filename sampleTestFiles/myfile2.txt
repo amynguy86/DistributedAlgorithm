@@ -5,7 +5,7 @@
 # As per the “shell” convention, anything following a hash sign is
 # a comment and should be ignored by the parser.
 #
-# Answer to this file, triples in the form (smallerUID,LargerUID,cost)->(2,1,2),(3,1,3),(3,1,4),(1,3,5),(6,3,6),(9,6,7)
+# Answer to this file, on this link https://www.geeksforgeeks.org/greedy-algorithms-set-2-kruskals-minimum-spanning-tree-mst/
 #
 # Number of nodes
 9
