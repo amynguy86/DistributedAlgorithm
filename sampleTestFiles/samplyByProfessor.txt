@@ -1,0 +1,36 @@
+#Sample Configuration File
+#
+# Configuration file for CS 6380 Project 2 (Spring 2018)
+#
+# As per the “shell” convention, anything following a hash sign is
+# a comment and should be ignored by the parser.
+#
+# Answer to this file, triples in the form (smallerUID,LargerUID,cost)->(3,5,8),(1,8,184),(3,8,78),(3,184,200),(2,9,78),(1,37,78)
+#
+# Number of nodes
+7
+# Here we list the individual nodes
+#
+# Format is:
+# UID Hostname Port
+5     Amin-PC 1233
+200   Amin-PC 1234
+8     Amin-PC 1235
+184   Amin-PC 1236
+9     Amin-PC 1237
+37    Amin-PC 1238
+78    Amin-PC 1239
+
+
+# List of edges and their weight, one per line. An edge is denoted
+# by (smaller uid, larger uid)
+
+(5,200) 5
+(5,8) 3
+(5,37) 10
+(8,184) 1
+(8,78) 3
+(184,200) 3
+(37,78) 1
+(9,78) 2
+(9,200) 5
