@@ -63,8 +63,7 @@ public class Triple implements Comparable<Triple> {
 		}
 		
 		String[] data = tripleStr.replace("<", "").replaceAll(">","").split(",");
-		return  new Triple(data[0],data[1],data[2]);
-		
+		return  new Triple(data[1],data[2],data[0]);
 	}
 
 }

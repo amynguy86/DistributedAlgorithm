@@ -450,7 +450,7 @@ public class MST implements Consumer<MessageFormat> {
 							this.numTestMessagesSent = this.nonTreeNeibourMap.size();
 						} else {
 							logger.info(
-									"No need to send test messages as nonTreeNeibourMap's min cost is bigger or its empty");
+									"No need to send test messages as nonTreeNeibourMap's min cost: "+this.nonTreeNeibourMap.firstKey()+ ", is bigger that existing MWOE:"+mwoe.cost);
 							sendConvergeCast();
 
 						}
